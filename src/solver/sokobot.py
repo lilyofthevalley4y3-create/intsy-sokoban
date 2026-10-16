@@ -1,11 +1,12 @@
-import time
 
+import time
 
 class SokoBot:
     def __init__(self):
         self.player = None
         self.crates = set()
         self.goals = set()
+        self.walls = set()
 
     def solveSokobanPuzzle(self, width, height, mapData, itemsData):
         self.initialize(width, height, mapData, itemsData)
@@ -15,7 +16,10 @@ class SokoBot:
         print("Goals: " + str(self.goals))
 
         self.heuristic()
-
+        currentState = (self.player, self.crates)
+        
+        actions = self.nextState(currentState)
+        print("Possible next states:", actions)
         return ""
 
     def initialize(self, width, height, mapData, itemsData):
@@ -52,3 +56,35 @@ class SokoBot:
 
     def get_distance(self, a, b):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+    def allCratesOnGoals(self, state):
+        player, crates = state
+        return crates == self.goals
+
+    def nextState(self, state):
+        player, crates = state
+        player_row, player_col = player
+        nextStates = []
+
+        actions = [(-1,0),(1,0),(0,-1),(0,1)]
+
+        for r, c in actions:
+            newPlayerPos = (player_row + r, player_col + c)
+            newPlayerRow, newPlayerCol = newPlayerPos
+
+            if newPlayerPos in self.walls:
+                continue
+            
+            if newPlayerPos in crates:
+                newCratesPos = (newPlayerRow + r, newPlayerCol + c)
+
+                if newCratesPos in self.walls or newCratesPos in crates:
+                    continue
+                
+                updated_crates = (crates - {newPlayerPos}) + {newCratesPos}
+                nextStates.append((newPlayerPos, updated_crates))
+
+            else:
+                nextStates.append((newPlayerPos, crates))
+        return nextStates
